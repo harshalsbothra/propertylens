@@ -9,9 +9,35 @@
 <div class="layout"><aside class="card inbox"><strong>Conversations</strong><div id="convs" style="margin-top:10px"></div></aside><main class="card"><strong id="chatTitle">Select a conversation</strong><div class="chat" id="chat"></div><div class="grid"><textarea class="full" id="message" rows="2" placeholder="Type a trial message exactly as a buyer would..."></textarea><button class="btn primary full" onclick="receive()">Process WhatsApp message</button></div></main><aside class="right"><div class="card"><strong>Customer memory</strong><div id="profile" class="section"></div></div><div class="card section"><strong>Automation</strong><div id="automation" class="section"></div></div><div class="card section"><strong>Best matches</strong><div id="matches" class="section"></div></div></aside></div>
 <p class="meta" style="margin-top:18px">Trial mode stores conversation data in this browser. Production WhatsApp connection requires an authorized WhatsApp Business Platform account, webhook verification, business messaging permissions and provider credentials.</p></div>
 <script>
-const KEY='propertylens-wa-v1';let db=JSON.parse(localStorage.getItem(KEY)||'null')||{convs:[],inventory:[{name:'Vesu 3 BHK Premium',location:'Vesu, Surat',price:14200000,area:1780,bhk:'3',type:'Apartment'},{name:'Vesu 3 BHK Value',location:'Vesu, Surat',price:13200000,area:1650,bhk:'3',type:'Apartment'},{name:'Adajan 2 BHK',location:'Adajan, Surat',price:8500000,area:1150,bhk:'2',type:'Apartment'}],selected:null};
+const KEY='propertylens-wa-v1';
+const DEFAULT_INVENTORY=[
+  {name:'Vesu 3 BHK Premium',location:'Vesu, Surat',price:14200000,area:1780,bhk:'3',type:'Apartment'},
+  {name:'Vesu 3 BHK Value',location:'Vesu, Surat',price:13200000,area:1650,bhk:'3',type:'Apartment'},
+  {name:'Adajan 2 BHK',location:'Adajan, Surat',price:8500000,area:1150,bhk:'2',type:'Apartment'}
+];
+function loadDB(){
+  try{
+    const raw=localStorage.getItem(KEY);
+    if(!raw)return {convs:[],inventory:DEFAULT_INVENTORY.map(x=>({...x})),selected:null};
+    const parsed=JSON.parse(raw);
+    if(!parsed||typeof parsed!=='object')throw new Error('Invalid saved state');
+    return {
+      convs:Array.isArray(parsed.convs)?parsed.convs:[],
+      inventory:Array.isArray(parsed.inventory)&&parsed.inventory.length?parsed.inventory:DEFAULT_INVENTORY.map(x=>({...x})),
+      selected:parsed.selected??null
+    };
+  }catch(e){
+    try{localStorage.removeItem(KEY)}catch(_){}
+    return {convs:[],inventory:DEFAULT_INVENTORY.map(x=>({...x})),selected:null};
+  }
+}
+let db=loadDB();
 const $=id=>document.getElementById(id),money=v=>'₹'+Number(v||0).toLocaleString('en-IN');
-function save(){localStorage.setItem(KEY,JSON.stringify(db));render()}
+function save(){
+  try{localStorage.setItem(KEY,JSON.stringify(db))}
+  catch(e){console.warn('PropertyLens WhatsApp storage unavailable',e)}
+  render();
+}
 function extract(t,old={}){t=t.toLowerCase();let x={...old};let m=t.match(/(?:₹|rs\.?|inr)?\s*([\d.]+)\s*(cr(?:ore)?|l(?:akh)?)/i);if(m)x.budget=Math.round(Number(m[1])*(m[2].toLowerCase().startsWith('c')?1e7:1e5));let b=t.match(/\b([1-5])\s*bhk\b/i);if(b)x.bhk=b[1];let a=t.match(/([\d,]+)\s*(?:sq\.?\s*ft|sqft|square feet)/i);if(a)x.area=Number(a[1].replace(/,/g,''));['vesu','adajan','althan','piplod','pal'].forEach(l=>{if(t.includes(l))x.location=l.replace(/^./,c=>c.toUpperCase())+', Surat'});if(/loan|finance|emi/.test(t))x.finance='Loan required';if(/cash/.test(t))x.finance='Cash';if(/rent|rental|investment/.test(t))x.purpose='Investment';if(/self.?use|live|family/.test(t))x.purpose='Self-use';if(/parking/.test(t))x.parking=true;if(/ready possession|ready to move/.test(t))x.possession='Ready';if(/school/.test(t))x.notes=(x.notes||'')+' School nearby';if(/visit|see it|site/.test(t))x.visitIntent=true;if(/expensive|price|discount|negot/.test(t))x.objection='Price / negotiation';return x}
 function score(l,p){let s=0;if(l.location&&p.location.toLowerCase().includes(l.location.split(',')[0].toLowerCase()))s+=35;if(l.budget&&p.price<=l.budget)s+=30;else if(l.budget&&p.price<=l.budget*1.1)s+=18;if(l.bhk&&String(p.bhk)===String(l.bhk))s+=15;if(l.area&&p.area>=l.area)s+=10;if(l.type&&l.type===p.type)s+=10;return Math.min(100,s)}
 function selected(){return db.convs.find(x=>x.id===db.selected)}
