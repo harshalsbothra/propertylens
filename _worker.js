@@ -140,6 +140,7 @@ async function whatsappWebhook(request,env){
 export default {async fetch(request,env){
   const url=new URL(request.url);
   if(url.pathname==='/api/ai-report')return aiReport(request,env);
-  if(url.pathname==='/api/property-search')return propertySearch(request,env);\n  if(url.pathname==='/api/whatsapp/webhook')return whatsappWebhook(request,env);
+  if(url.pathname==='/api/property-search')return propertySearch(request,env);
+  if(url.pathname==='/api/whatsapp/webhook')return whatsappWebhook(request,env);
   return env.ASSETS.fetch(request);
 }};
