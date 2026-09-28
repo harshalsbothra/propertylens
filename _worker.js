@@ -15,25 +15,55 @@ function parseListing(text){
 async function propertySearch(request,env){
   if(request.method!=='POST')return json({error:'Method not allowed.'},405,{Allow:'POST'});
   try{
-    const body=await request.json();const query=String(body?.query||'').trim();
+    const body=await request.json();
+    const query=String(body?.query||'').trim();
     if(!query||query.length>240)return json({error:'Enter a property or project name up to 240 characters.'},400);
-    const key=env.GOOGLE_MAPS_API_KEY;
-    if(!key)return json({error:'Property search is not connected yet. Add GOOGLE_MAPS_API_KEY to enable authorized property/location search. Paste a listing to use the extraction tool now.'},503);
-    const response=await fetch('https://places.googleapis.com/v1/places:searchText',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','X-Goog-Api-Key':key,'X-Goog-FieldMask':'places.id,places.displayName,places.formattedAddress,places.location,places.googleMapsUri,places.primaryType,places.types'},
-      body:JSON.stringify({textQuery:query,languageCode:'en',pageSize:5})
+
+    // No API key or billing account is required. Nominatim is used only for
+    // public place/address discovery; property portals are not scraped.
+    const url='https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=8&q='+encodeURIComponent(query);
+    const response=await fetch(url,{
+      headers:{
+        'Accept':'application/json',
+        'User-Agent':'PropertyLens/1.0 (property discovery)'
+      }
     });
-    const data=await response.json();
-    if(!response.ok)return json({error:data?.error?.message||'Property search provider failed.'},502);
+    if(!response.ok)return json({error:'The public property/location search is temporarily unavailable.'},502);
+    const places=await response.json();
+
     const tokens=query.toLowerCase().split(/[^a-z0-9]+/).filter(x=>x.length>2);
-    const results=(data.places||[]).map(p=>{
-      const name=p.displayName?.text||'Unnamed place';const address=p.formattedAddress||'';
-      const hay=(name+' '+address).toLowerCase();const hits=tokens.filter(t=>hay.includes(t)).length;const ratio=tokens.length?hits/tokens.length:0;
-      return {id:p.id,name,address,lat:p.location?.latitude||null,lng:p.location?.longitude||null,mapsUrl:p.googleMapsUri||null,primaryType:p.primaryType||null,matchScore:Math.round(ratio*100),matchLabel:ratio>=.75?'Strong match':ratio>=.45?'Possible match':'Low-confidence match',source:'Google Places'};
+    const results=(Array.isArray(places)?places:[]).map(p=>{
+      const name=p.name||p.display_name?.split(',')[0]||'Unnamed place';
+      const address=p.display_name||'';
+      const hay=(name+' '+address).toLowerCase();
+      const hits=tokens.filter(t=>hay.includes(t)).length;
+      const ratio=tokens.length?hits/tokens.length:0;
+      const mapsUrl=(p.lat&&p.lon)
+        ? 'https://www.openstreetmap.org/?mlat='+encodeURIComponent(p.lat)+'&mlon='+encodeURIComponent(p.lon)+'#map=18/'+encodeURIComponent(p.lat)+'/'+encodeURIComponent(p.lon)
+        : null;
+      return {
+        id:p.place_id||null,
+        name,
+        address,
+        lat:p.lat?Number(p.lat):null,
+        lng:p.lon?Number(p.lon):null,
+        mapsUrl,
+        primaryType:p.type||p.class||null,
+        matchScore:Math.round(ratio*100),
+        matchLabel:ratio>=.75?'Strong match':ratio>=.45?'Possible match':'Low-confidence match',
+        source:'OpenStreetMap / Nominatim'
+      };
     }).sort((a,b)=>b.matchScore-a.matchScore);
-    return json({source:'google-places',query,results});
-  }catch(e){return json({error:'Unable to search for this property right now.'},500)}
+
+    return json({
+      source:'openstreetmap',
+      query,
+      results,
+      note:'Location discovery only. Price, rent, area and investment figures must come from a user-provided listing or another permitted source.'
+    });
+  }catch(e){
+    return json({error:'Unable to search for this property right now.'},500);
+  }
 }
 
 async function aiReport(request,env){
