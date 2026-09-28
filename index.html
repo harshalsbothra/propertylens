@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f4f0e8"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="manifest" href="/manifest.json">
 <title>PropertyLens — Real Estate Analyzer</title>
 <style>
 :root{--ink:#292722;--muted:#777168;--line:#e7e0d5;--card:#fffdf9;--bg:#f4f0e8;--accent:#8a6a45;--accent2:#eee5d8;--good:#386b50;--bad:#9a4f45;--gold:#9a7448;--input:#fffefa;--chart:#9b7a52;--loan:#817b73;--shadow:0 12px 34px rgba(74,58,39,.07)}
@@ -44,6 +44,13 @@ label{display:block;font-size:12px;font-weight:750;color:var(--muted);margin:12p
 .whatif-row{display:grid;grid-template-columns:1fr 160px 1fr;gap:10px;align-items:center}.whatif-result{text-align:right}.whatif-result .big{font-size:20px;font-weight:900}
 .factor-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.factor-card{border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--card);break-inside:avoid}.factor-card h3{margin:0 0 7px}.factor-card p{font-size:12px;line-height:1.55;margin:7px 0;color:var(--muted)}.factor-card .factor-metric{font-size:15px;font-weight:850}.report-summary{padding:15px;border-radius:14px;background:var(--accent2);margin-bottom:12px;line-height:1.6;font-size:13px}.report-actions{display:flex;gap:8px;flex-wrap:wrap}.report-actions .btn{width:auto}.report-status{font-size:11px;color:var(--muted);margin:10px 0}.factor-tag{display:inline-block;font-size:10px;font-weight:800;padding:4px 7px;border-radius:99px;background:var(--accent2);color:var(--accent);margin-bottom:8px}
 @media(max-width:700px){.compare-input-grid{grid-template-columns:1fr}.whatif-row{grid-template-columns:1fr}.whatif-result{text-align:left}}
+
+/* Mobile-friendly info tooltips */
+.tip{position:relative;display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;cursor:pointer;color:var(--accent);font-weight:900;outline:none}
+.tip::after{content:attr(data-tip);position:absolute;left:50%;bottom:calc(100% + 8px);transform:translate(-50%,6px);width:min(260px,72vw);padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);box-shadow:var(--shadow);font-size:11px;font-weight:500;line-height:1.45;text-align:left;white-space:normal;opacity:0;pointer-events:none;transition:opacity .15s ease,transform .15s ease;z-index:100}
+.tip:hover::after,.tip:focus::after,.tip:focus-visible::after{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+@media(max-width:560px){.tip::after{left:auto;right:-8px;transform:translateY(6px);}.tip:hover::after,.tip:focus::after,.tip:focus-visible::after{transform:translateY(0)}}
+.clone-btn{width:auto!important;padding:7px 9px!important;font-size:10px!important;margin:0!important}
 </style>
 </head>
 <body>
@@ -88,7 +95,7 @@ label{display:block;font-size:12px;font-weight:750;color:var(--muted);margin:12p
 <section class="card" style="margin-top:18px" id="decisionReportSection"><h2>7-factor property decision report</h2><p class="note" style="margin-top:-7px">A structured review of affordability, rental economics, financing, growth, cash flow, sensitivity and exit returns.</p><div class="report-actions no-print"><button class="btn primary" onclick="generateDecisionReport()">Generate free 7-factor report</button><button class="btn secondary" onclick="generateAIReport()">✨ Enhance with AI (optional)</button><button class="btn secondary" onclick="copyDecisionReport()">Copy report text</button><button class="btn ghost" onclick="window.print()">Print / Save as PDF</button></div><div id="decisionReportStatus" class="report-status">Free report: instant, no AI credits required. Financial values come from the PropertyLens calculator.</div><div id="aiReportStatus" class="report-status">AI enhancement is optional and can be enabled later when you are ready for API usage.</div><div id="aiDecisionReport"></div><div id="decisionReport"></div><div class="note">Free report uses transparent, rule-based PropertyLens calculations and does not require an external AI service. AI enhancement is optional and uses a secure server-side endpoint when enabled. Decision support only—not financial, legal, tax, valuation or investment advice.</div></section>
 <section class="card" style="margin-top:18px"><div id="debtFree" class="debt-free"></div><h2>Property value vs loan balance</h2><div id="chart" class="chart"></div><div class="legend"><span><i class="dot v"></i>Property value</span><span><i class="dot l"></i>Loan balance</span></div></section>
 <section class="card" style="margin-top:18px"><h2>Annual cash-flow breakdown</h2><div id="cashFlowChart" class="chart"></div><div class="legend"><span><i class="dot rentdot"></i>Rent received</span><span><i class="dot expdot"></i>Costs + repairs + tax</span><span><i class="dot emidot"></i>EMI</span></div><div class="note">Shows where the rent goes each year. Values are annual totals; the underlying model still uses monthly cash flows.</div></section>
-<section class="card" style="margin-top:18px"><h2>Compare properties</h2><div class="tabs no-print"><button class="tab active" onclick="showTab('compare')">Comparison</button><button class="tab" onclick="showTab('year')">Year-by-year</button></div><div id="compareTab"><div class="compare-builder no-print"><div class="section-title" style="margin-top:0">Enter the actual properties you are comparing</div><div class="hint" style="margin:5px 0 12px">Interest rate, tenure and advanced assumptions follow your main analysis. Change price, down payment and rent for each property.</div><div class="compare-input-grid"><div class="compare-property"><h3>Property A</h3><label>Price (₹)</label><input id="cmpAPrice" class="input money-input" type="text" inputmode="numeric" oninput="formatMoneyInput(this);analyze()"><label>Down payment (₹)</label><input id="cmpADown" class="input money-input" type="text" inputmode="numeric" oninput="formatMoneyInput(this);analyze()"><label>Monthly rent (₹)</label><input id="cmpARent" class="input money-input" type="text" inputmode="numeric" oninput="formatMoneyInput(this);analyze()"></div><div class="compare-property"><h3>Property B</h3><label>Price (₹)</label><input id="cmpBPrice" class="input money-input" type="text" inputmode="numeric" oninput="formatMoneyInput(this);analyze()"><label>Down payment (₹)</label><input id="cmpBDown" class="input money-input" type="text" inputmode="numeric" oninput="formatMoneyInput(this);analyze()"><label>Monthly rent (₹)</label><input id="cmpBRent" class="input money-input" type="text" inputmode="numeric" oninput="formatMoneyInput(this);analyze()"></div><div class="compare-property"><h3>Property C</h3><label>Price (₹)</label><input id="cmpCPrice" class="input money-input" type="text" inputmode="numeric" oninput="formatMoneyInput(this);analyze()"><label>Down payment (₹)</label><input id="cmpCDown" class="input money-input" type="text" inputmode="numeric" oninput="formatMoneyInput(this);analyze()"><label>Monthly rent (₹)</label><input id="cmpCRent" class="input money-input" type="text" inputmode="numeric" oninput="formatMoneyInput(this);analyze()"></div></div><div class="whatif"><div class="section-title" style="margin-top:0">Negotiation What-If</div><div class="hint" style="margin:5px 0 10px">See how a lower purchase price changes EMI and Monthly Pocket Balance.</div><div class="whatif-row"><div><label>Property</label><select id="whatIfProperty" class="input" onchange="updateWhatIf()"><option value="A">Property A</option><option value="B">Property B</option><option value="C">Property C</option></select></div><div><label>Negotiation discount (₹)</label><input id="whatIfDiscount" class="input money-input" type="text" inputmode="numeric" value="0" oninput="formatMoneyInput(this);updateWhatIf()"></div><div class="whatif-result" id="whatIfResult">Enter a discount to see the impact.</div></div></div></div><div class="compare" id="compareCards"></div><div class="note">This comparison is a factual side-by-side model based on the assumptions entered for each property. It does not rank or recommend a property.</div></div><div id="yearTab" class="hidden"><div class="table-wrap"><table class="table"><thead><tr><th>Year</th><th>Property value</th><th>Loan balance</th><th>Gross rent</th><th>Operating costs</th><th>major-repair reserve</th><th>Tax</th><th>Monthly Pocket Balance</th><th>Equity</th></tr></thead><tbody id="tableBody"></tbody></table></div></div></section>
+<section class="card" style="margin-top:18px"><h2>Compare properties</h2><div class="tabs no-print"><button class="tab active" onclick="showTab('compare')">Comparison</button><button class="tab" onclick="showTab('year')">Year-by-year</button></div><div id="compareTab"><div class="compare-builder no-print"><div class="section-title" style="margin-top:0">Enter the actual properties you are comparing</div><div class="hint" style="margin:5px 0 12px">Interest rate, tenure and advanced assumptions follow your main analysis. Change price, down payment and rent for each property.</div><div class="compare-input-grid"><div class="compare-property"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px"><h3 style="margin:0">Property A</h3><button type="button" class="btn ghost clone-btn" onclick="cloneMainToCompareA()">↳ Clone main analysis</button></div><label>Price (₹)</label><input id="cmpAPrice" class="input money-input" type="text" inputmode="numeric" oninput="formatMoneyInput(this);analyze()"><label>Down payment (₹)</label><input id="cmpADown" class="input money-input" type="text" inputmode="numeric" oninput="formatMoneyInput(this);analyze()"><label>Monthly rent (₹)</label><input id="cmpARent" class="input money-input" type="text" inputmode="numeric" oninput="formatMoneyInput(this);analyze()"></div><div class="compare-property"><h3>Property B</h3><label>Price (₹)</label><input id="cmpBPrice" class="input money-input" type="text" inputmode="numeric" oninput="formatMoneyInput(this);analyze()"><label>Down payment (₹)</label><input id="cmpBDown" class="input money-input" type="text" inputmode="numeric" oninput="formatMoneyInput(this);analyze()"><label>Monthly rent (₹)</label><input id="cmpBRent" class="input money-input" type="text" inputmode="numeric" oninput="formatMoneyInput(this);analyze()"></div><div class="compare-property"><h3>Property C</h3><label>Price (₹)</label><input id="cmpCPrice" class="input money-input" type="text" inputmode="numeric" oninput="formatMoneyInput(this);analyze()"><label>Down payment (₹)</label><input id="cmpCDown" class="input money-input" type="text" inputmode="numeric" oninput="formatMoneyInput(this);analyze()"><label>Monthly rent (₹)</label><input id="cmpCRent" class="input money-input" type="text" inputmode="numeric" oninput="formatMoneyInput(this);analyze()"></div></div><div class="whatif"><div class="section-title" style="margin-top:0">Negotiation What-If</div><div class="hint" style="margin:5px 0 10px">See how a lower purchase price changes EMI and Monthly Pocket Balance.</div><div class="whatif-row"><div><label>Property</label><select id="whatIfProperty" class="input" onchange="updateWhatIf()"><option value="A">Property A</option><option value="B">Property B</option><option value="C">Property C</option></select></div><div><label>Negotiation discount (₹)</label><input id="whatIfDiscount" class="input money-input" type="text" inputmode="numeric" value="0" oninput="formatMoneyInput(this);updateWhatIf()"></div><div class="whatif-result" id="whatIfResult">Enter a discount to see the impact.</div></div></div></div><div class="compare" id="compareCards"></div><div class="note">This comparison is a factual side-by-side model based on the assumptions entered for each property. It does not rank or recommend a property.</div></div><div id="yearTab" class="hidden"><div class="table-wrap"><table class="table"><thead><tr><th>Year</th><th>Property value</th><th>Loan balance</th><th>Gross rent</th><th>Operating costs</th><th>major-repair reserve</th><th>Tax</th><th>Monthly Pocket Balance</th><th>Equity</th></tr></thead><tbody id="tableBody"></tbody></table></div></div></section>
 <section class="card" style="margin-top:18px"><h2>Model notes</h2><div id="notes" class="note"></div></section>
 </div><div id="sellResults" class="seller-only"><section class="card"><h2>Seller Net Sheet</h2><div id="sellerMain"></div><div id="sellerBreakdown" class="seller-net"></div><div class="share-row no-print"><button class="btn secondary" onclick="copySellerSummary()">Copy Clean Summary</button><button class="btn ghost" onclick="shareSellerWhatsApp()">Share on WhatsApp</button></div><div id="sellerNotes" class="note"></div></section></div>
 <div class="footer">PropertyLens · Version 2.0 · Monthly cash-flow IRR · Deterministic financial calculations with a 7-factor decision report.</div>
@@ -170,6 +177,78 @@ function initCompareInputs(){const base=model(n('appreciation'));if(!base.price|
 function updateWhatIf(){const prop=$('whatIfProperty')?.value||'A',discount=n('whatIfDiscount'),price=n(`cmp${prop}Price`),down=n(`cmp${prop}Down`),rent=n(`cmp${prop}Rent`);if(!$('whatIfResult'))return;if(price<=0){$('whatIfResult').innerHTML='Enter the property details first.';return}const newPrice=Math.max(0,price-discount),newDown=Math.min(down,newPrice),common={rate:n('rate'),tenure:n('tenure'),vacancy:n('vacancy'),rentGrowth:n('rentGrowth'),appreciation:n('appreciation'),hold:n('hold'),spread:n('spread'),expenses:n('expenses'),expenseGrowth:n('expenseGrowth'),annualOther:n('annualOther'),otherGrowth:n('otherGrowth'),capex:n('capex'),buyCosts:n('buyCosts'),sellCosts:n('sellCosts'),rentalTax:n('rentalTax'),cgTax:n('cgTax')},before=model(n('appreciation'),{...common,price,down,rent}),after=model(n('appreciation'),{...common,price:newPrice,down:newDown,rent});$('whatIfResult').innerHTML=`<div class="small">New price: ${money(newPrice)} · EMI: ${money(after.monthly)} · Pocket Balance: <span class="${after.pocket>=0?'positive':'negative'}">${after.pocket>=0?'+':''}${money(after.pocket)}/month</span></div><div class="small">Change vs current: EMI ${money(after.monthly-before.monthly)} · Pocket ${after.pocket-before.pocket>=0?'+':''}${money(after.pocket-before.pocket)}/month</div>`}
 function showTab(which){$('compareTab').classList.toggle('hidden',which!=='compare');$('yearTab').classList.toggle('hidden',which!=='year');document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('active',(which==='compare'?i===0:i===1)))}
 function loadExample(){location.reload()}
+
+/* Shareable URLs + local autosave */
+const PERSIST_KEY='propertylens-state-v2';
+function persistableInputs(){
+  return Array.from(document.querySelectorAll('input[id],select[id],textarea[id]'))
+    .filter(el=>!['themeBtn','downPctValue','rateSliderValue'].includes(el.id));
+}
+function captureState(){
+  const state={};
+  persistableInputs().forEach(el=>{
+    if(el.type==='checkbox'||el.type==='radio') state[el.id]=el.checked;
+    else state[el.id]=el.value;
+  });
+  return state;
+}
+function applyState(state){
+  if(!state) return;
+  persistableInputs().forEach(el=>{
+    if(!(el.id in state)) return;
+    if(el.type==='checkbox'||el.type==='radio') el.checked=Boolean(state[el.id]);
+    else el.value=state[el.id];
+  });
+  updateMoneyHelpers(); syncDownPctFromAmount();
+  if($('rateSlider') && $('rate')) $('rateSlider').value=$('rate').value;
+  if($('rateSliderValue')) $('rateSliderValue').textContent=n('rate').toFixed(1)+'%';
+  if($('downPctValue')) $('downPctValue').textContent=n('downPct')+'%';
+}
+function hasScenarioParams(){
+  const p=new URLSearchParams(location.search);
+  return persistableInputs().some(el=>p.has(el.id));
+}
+function readUrlState(){
+  const p=new URLSearchParams(location.search),state={};
+  persistableInputs().forEach(el=>{if(p.has(el.id)) state[el.id]=el.type==='checkbox'?p.get(el.id)==='1':p.get(el.id);});
+  return Object.keys(state).length?state:null;
+}
+function writeScenarioUrl(){
+  const p=new URLSearchParams();
+  persistableInputs().forEach(el=>{
+    if(el.type==='checkbox') p.set(el.id,el.checked?'1':'0');
+    else if(el.value!=='') p.set(el.id,el.value);
+  });
+  const qs=p.toString();
+  history.replaceState(null,'',location.pathname+(qs?'?'+qs:'')+location.hash);
+}
+function saveScenario(){
+  try{localStorage.setItem(PERSIST_KEY,JSON.stringify(captureState()));writeScenarioUrl();}catch(e){}
+}
+function restoreScenario(){
+  try{
+    const urlState=readUrlState();
+    const saved=JSON.parse(localStorage.getItem(PERSIST_KEY)||'null');
+    if(urlState) applyState(urlState);
+    else if(saved) applyState(saved);
+  }catch(e){}
+}
+function bindPersistence(){
+  persistableInputs().forEach(el=>{
+    el.addEventListener('input',()=>{saveScenario();});
+    el.addEventListener('change',()=>{saveScenario();});
+  });
+}
+function cloneMainToCompareA(){
+  const vals={cmpAPrice:$('price')?.value||'',cmpADown:$('down')?.value||'',cmpARent:$('rent')?.value||''};
+  Object.entries(vals).forEach(([id,v])=>{if($(id))$(id).value=v;});
+  updateMoneyHelpers(); analyze(); saveScenario();
+  const el=$('cmpAPrice'); if(el) el.scrollIntoView({behavior:'smooth',block:'center'});
+}
+function prepareMobileTooltips(){
+  document.querySelectorAll('.tip[title]').forEach(el=>{el.dataset.tip=el.getAttribute('title');el.removeAttribute('title');el.setAttribute('tabindex','0');el.setAttribute('role','button');});
+}
+
 function cleanSummary(){const b=model(n('appreciation'));return `PropertyLens summary\nProperty price: ${money(b.price)}\nDown payment: ${money(b.down)}\nMonthly rent: ${money(b.rent)}\nEMI: ${money(b.monthly)}\nMonthly Pocket Balance: ${b.pocket>=0?'+':''}${money(b.pocket)}\n${b.hold}-year property value: ${money(b.endingValue)}\nTrue Annual Return (IRR): ${irrText(b.irr)}\n\nScenario-based estimate — not financial advice.`}
 function copySummary(){navigator.clipboard?.writeText(cleanSummary()).then(()=>alert('Summary copied.')).catch(()=>alert(cleanSummary()))}
 function shareWhatsApp(){window.open('https://wa.me/?text='+encodeURIComponent(cleanSummary()),'_blank')}
@@ -183,6 +262,9 @@ function setMode(mode){const buy=mode==='buy';document.body.dataset.mode=buy?'bu
 function loadSellerExample(){$('salePrice').value='1,00,00,000';$('outstandingLoan').value='40,00,000';$('sellerCosts').value=2;$('sellerCgTax').value=10;$('originalPrice').value='75,00,000';$('sellerHolding').value=7;$('sellerIndexation').checked=false;analyzeSeller()}
 function toggleTheme(){const d=document.documentElement,now=d.getAttribute('data-theme')==='dark'?'light':'dark';d.setAttribute('data-theme',now);localStorage.setItem('propertylens-theme',now);$('themeBtn').textContent=now==='dark'?'☀ Light':'☾ Dark'}
 let resizeTimer;window.addEventListener("resize",()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{if(document.body.dataset.mode==="sell")analyzeSeller();else analyze();},250);});
-(function(){updateMoneyHelpers();syncDownPctFromAmount();initCompareInputs();const saved=localStorage.getItem('propertylens-theme');if(saved){document.documentElement.setAttribute('data-theme',saved);$('themeBtn').textContent=saved==='dark'?'☀ Light':'☾ Dark'}analyze()})();
+(function(){restoreScenario();prepareMobileTooltips();bindPersistence();updateMoneyHelpers();syncDownPctFromAmount();initCompareInputs();const saved=localStorage.getItem('propertylens-theme');if(saved){document.documentElement.setAttribute('data-theme',saved);$('themeBtn').textContent=saved==='dark'?'☀ Light':'☾ Dark'}analyze()})();
+</script>
+<script>
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));}
 </script>
 </body></html>
