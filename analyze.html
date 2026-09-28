@@ -215,7 +215,27 @@ function writeScenarioUrl(){
 function saveScenario(){
   try{localStorage.setItem(PERSIST_KEY,JSON.stringify(captureState()));writeScenarioUrl();}catch(e){}
 }
-function applyPropertyIdentity(){const q=new URLSearchParams(location.search);const name=q.get('propertyName');const address=q.get('propertyAddress');if(name){const h=document.querySelector('.hero h1');if(h)h.innerHTML='Analyze: '+name;const sub=document.querySelector('.hero .sub');if(sub&&address)sub.innerHTML='Matched property: '+address+'<br>'+sub.innerHTML;}if(name||address){localStorage.setItem('propertylens-selected-property',JSON.stringify({name:name||'',address:address||'',mapsUrl:q.get('mapsUrl')||''}));}}\nfunction restoreScenario(){
+function applyPropertyIdentity(){
+  const q=new URLSearchParams(location.search);
+  let name=q.get('propertyName')||'',address=q.get('propertyAddress')||'',mapsUrl=q.get('mapsUrl')||'';
+  let lat=q.get('propertyLat'),lng=q.get('propertyLng');
+  try{
+    const saved=JSON.parse(localStorage.getItem('propertylens-selected-property')||'null');
+    if(!name&&saved?.name)name=saved.name;
+    if(!address&&saved?.address)address=saved.address;
+    if(!mapsUrl&&saved?.mapsUrl)mapsUrl=saved.mapsUrl;
+    if(lat==null&&saved?.lat!=null)lat=saved.lat;
+    if(lng==null&&saved?.lng!=null)lng=saved.lng;
+  }catch(e){}
+  if(name){
+    const h=document.querySelector('.hero h1');if(h)h.textContent='Analyze: '+name;
+    const sub=document.querySelector('.hero .sub');
+    if(sub&&address)sub.innerHTML='Matched property: '+String(address).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))+'<br>'+sub.innerHTML;
+  }
+  if(name||address||mapsUrl){
+    try{localStorage.setItem('propertylens-selected-property',JSON.stringify({name,address,mapsUrl,lat:lat==null?null:Number(lat),lng:lng==null?null:Number(lng)}))}catch(e){}
+  }
+}\nfunction restoreScenario(){
   try{
     const urlState=readUrlState();
     const saved=JSON.parse(localStorage.getItem(PERSIST_KEY)||'null');
