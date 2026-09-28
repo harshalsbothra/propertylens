@@ -10,10 +10,14 @@
 :root{--ink:#292722;--muted:#777168;--line:#e7e0d5;--card:#fffdf9;--bg:#f4f0e8;--accent:#8a6a45;--accent2:#eee5d8;--good:#386b50;--warn:#8a6a45;--bad:#9a4f45;--shadow:0 14px 40px rgba(74,58,39,.08)}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1120px;margin:auto;padding:22px 20px 70px}.site-nav{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:8px 0 24px;border-bottom:1px solid var(--line)}.site-nav a{text-decoration:none;color:var(--ink)}.brand{font:800 20px Georgia,serif}.nav-links{display:flex;gap:18px;font-size:12px;font-weight:800}.nav-cta{background:var(--accent);color:#fff!important;padding:9px 13px;border-radius:10px;font-size:12px;font-weight:800}.hero{padding:58px 0 30px;max-width:800px}.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:900}.hero h1{font:500 clamp(42px,7vw,68px) Georgia,serif;line-height:1;letter-spacing:-.05em;margin:12px 0 18px}.hero p{font-size:17px;line-height:1.65;color:var(--muted)}.tabs{display:flex;gap:8px;margin:25px 0 14px;flex-wrap:wrap}.tab{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:11px;padding:10px 13px;font-weight:800;font-size:12px;cursor:pointer}.tab.active{background:var(--accent);border-color:var(--accent);color:#fff}.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px;box-shadow:var(--shadow)}.searchrow{display:grid;grid-template-columns:1fr auto;gap:10px}.input{width:100%;border:1px solid var(--line);background:#fffefa;color:var(--ink);border-radius:11px;padding:14px;font:inherit;outline:none}.input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(138,106,69,.10)}button.primary,.primary{border:0;background:var(--accent);color:#fff;border-radius:11px;padding:13px 18px;font-weight:850;cursor:pointer;text-decoration:none;display:inline-block}.secondary{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:11px;padding:11px 14px;font-weight:800;cursor:pointer}.hint,.status{font-size:11px;color:var(--muted);line-height:1.5;margin-top:9px}.results{display:grid;gap:12px;margin-top:18px}.result{border:1px solid var(--line);border-radius:16px;padding:18px;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center}.result h3{margin:0 0 5px;font-size:17px}.result p{margin:4px 0;color:var(--muted);font-size:12px}.pill{display:inline-block;padding:5px 8px;border-radius:999px;background:var(--accent2);color:var(--accent);font-size:10px;font-weight:850;margin-top:8px}.empty{padding:25px;border:1px dashed var(--line);border-radius:15px;color:var(--muted);font-size:13px;text-align:center}.hidden{display:none}.paste{min-height:190px;resize:vertical}.extract{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}.metric{border:1px solid var(--line);border-radius:13px;padding:13px}.metric span{display:block;color:var(--muted);font-size:10px}.metric strong{display:block;margin-top:4px;font-size:16px}.source{font-size:10px;color:var(--muted);margin-top:14px;padding-top:13px;border-top:1px solid var(--line)}.notice{margin-top:16px;padding:13px 15px;border-radius:12px;background:var(--accent2);font-size:12px;line-height:1.5}.footer{margin-top:35px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:10px}@media(max-width:700px){.nav-links{display:none}.searchrow{grid-template-columns:1fr}.result{grid-template-columns:1fr}.extract{grid-template-columns:1fr}.hero{padding-top:38px}}
 </style>
-</head>
+<style id="propertylens-theme">
+[data-theme="dark"]{--ink:#eee8dd;--muted:#aaa195;--line:#39342e;--card:#211f1b;--bg:#171512;--accent:#b29368;--accent2:#30291f;--good:#78a88d;--warn:#c19a63;--bad:#d08376;--shadow:0 14px 36px rgba(0,0,0,.30)}
+.theme-toggle{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:9px 11px;font-size:11px;font-weight:850;cursor:pointer;white-space:nowrap}
+.theme-toggle:hover{border-color:var(--accent)}
+</style></head>
 <body>
 <div class="wrap">
-<nav class="site-nav"><a class="brand" href="/">PropertyLens</a><div class="nav-links"><a href="/property-search.html">Property Search</a><a href="/analyze.html">Analyze</a><a href="/brokers.html">For Brokers</a><a href="/pricing.html">Pricing</a><a href="/about.html">Trust & Method</a></div><a class="nav-cta" href="/analyze.html">Analyze →</a></nav>
+<nav class="site-nav"><a class="brand" href="/index.html">PropertyLens</a><div class="nav-links"><a href="/property-search.html">Property Search</a><a href="/analyze.html">Analyze</a><a href="/brokers.html">For Brokers</a><a href="/pricing.html">Pricing</a><a href="/about.html">Trust & Method</a></div><button class="theme-toggle" onclick="togglePropertyLensTheme()">☾ Dark</button><a class="nav-cta" href="/analyze.html">Analyze →</a></nav>
 
 <section class="hero">
 <div class="eyebrow">Property intelligence</div>
@@ -112,4 +116,21 @@ function buildPlaceUrl(x){
 function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 document.getElementById('query').addEventListener('keydown',e=>{if(e.key==='Enter')searchProperty()});
 </script>
-</body></html>
+<script id="propertylens-theme-script">
+(function(){
+  const key='propertylens-theme';
+  function applyTheme(){
+    const saved=localStorage.getItem(key);
+    const theme=saved||((window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light');
+    document.documentElement.setAttribute('data-theme',theme);
+    document.querySelectorAll('.theme-toggle').forEach(b=>b.textContent=theme==='dark'?'☀ Light':'☾ Dark');
+  }
+  window.togglePropertyLensTheme=function(){
+    const next=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';
+    document.documentElement.setAttribute('data-theme',next);
+    localStorage.setItem(key,next);
+    document.querySelectorAll('.theme-toggle').forEach(b=>b.textContent=next==='dark'?'☀ Light':'☾ Dark');
+  };
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',applyTheme);else applyTheme();
+})();
+</script></body></html>
