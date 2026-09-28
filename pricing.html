@@ -2,6 +2,18 @@
 [data-theme="dark"]{--ink:#eee8dd;--muted:#aaa195;--line:#39342e;--card:#211f1b;--bg:#171512;--accent:#b29368;--accent2:#30291f;--good:#78a88d;--warn:#c19a63;--bad:#d08376;--shadow:0 14px 36px rgba(0,0,0,.30)}
 .theme-toggle{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:9px 11px;font-size:11px;font-weight:850;cursor:pointer;white-space:nowrap}
 .theme-toggle:hover{border-color:var(--accent)}
+</style><style id="propertylens-liquid-glass">
+:root{--glass-bg:rgba(255,255,255,.56);--glass-border:rgba(255,255,255,.72);--glass-shadow:0 18px 55px rgba(61,49,35,.12)}
+body{background:
+radial-gradient(circle at 8% 8%,rgba(255,255,255,.78),transparent 34%),
+radial-gradient(circle at 88% 18%,rgba(215,231,255,.42),transparent 30%),
+radial-gradient(circle at 55% 90%,rgba(244,226,199,.55),transparent 34%),var(--bg);
+background-attachment:fixed}
+.mock,.card,.quote,.step,.metric,.site-nav,.theme-toggle,.secondary{background:var(--glass-bg);border-color:var(--glass-border);box-shadow:var(--glass-shadow);backdrop-filter:blur(20px) saturate(145%);-webkit-backdrop-filter:blur(20px) saturate(145%)}
+.card,.mock,.quote{border-radius:26px}.step,.metric{border-radius:18px}.theme-toggle,.btn,.nav-cta{border-radius:14px}
+.hero h1,.section h2{ text-shadow:0 1px 0 rgba(255,255,255,.45)}
+@media(max-width:700px){.wrap{padding-left:15px;padding-right:15px}.site-nav{position:sticky;top:8px;z-index:20;padding:10px 12px;border:1px solid var(--glass-border);border-radius:20px;background:rgba(255,255,255,.46);backdrop-filter:blur(22px) saturate(150%);-webkit-backdrop-filter:blur(22px) saturate(150%);box-shadow:0 12px 35px rgba(61,49,35,.10)}}
+[data-theme="dark"]{--glass-bg:rgba(38,36,32,.62);--glass-border:rgba(255,255,255,.12);--glass-shadow:0 18px 55px rgba(0,0,0,.28)}
 </style></head><body><div class="wrap"><nav class="site-nav"><a class="brand" href="/index.html">PropertyLens</a><div class="nav-links"><a href="/analyze.html">Analyze</a><a href="/brokers.html">For Brokers</a><a href="/pricing.html">Pricing</a><a href="/about.html">Trust & Method</a></div><button class="theme-toggle" onclick="togglePropertyLensTheme()">☾ Dark</button><a class="nav-cta" href="/analyze.html">Start analyzing →</a></nav><div class="hero"><div class="eyebrow">Simple pricing</div><h1>Start free. Pay when the workflow becomes valuable.</h1><p>The buyer/investor analyzer stays free. Broker software can be monetized once the CRM, WhatsApp and lead workflow are connected to a real account system.</p></div><div class="grid"><article class="card"><h2>Free</h2><div class="price">₹0</div><ul><li>Property analysis</li><li>7-factor report</li><li>Scenario links</li><li>Compare properties</li><li>Print / PDF report</li></ul><a class="btn" href="/analyze.html">Use analyzer</a></article><article class="card featured"><h2>Broker Professional</h2><div class="price">₹1,499</div><p>/ month</p><ul><li>Lead capture & qualification</li><li>Broker pipeline</li><li>Property inventory</li><li>Scenario links</li><li>Follow-up queue</li><li>WhatsApp workflow integration</li></ul><a class="btn" href="/brokers.html">Open broker workspace</a></article><article class="card"><h2>Agency</h2><div class="price">₹2,999+</div><ul><li>Multiple broker users</li><li>Shared inventory</li><li>Lead routing</li><li>Conversion reporting</li><li>Admin controls</li></ul><a class="btn" href="/brokers.html">Explore agency</a></article></div><div class="callout">Broker pricing is a proposed commercial structure, not a live payment plan yet. Production needs authentication, database persistence, billing and messaging integrations.</div></div><script id="propertylens-theme-script">
 (function(){
   const key='propertylens-theme';
