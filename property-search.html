@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f4f0e8">
+<link rel="manifest" href="/manifest.json">
+<title>PropertyLens — Property Search</title>
+<style>
+:root{--ink:#292722;--muted:#777168;--line:#e7e0d5;--card:#fffdf9;--bg:#f4f0e8;--accent:#8a6a45;--accent2:#eee5d8;--good:#386b50;--warn:#8a6a45;--bad:#9a4f45;--shadow:0 14px 40px rgba(74,58,39,.08)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1120px;margin:auto;padding:22px 20px 70px}.site-nav{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:8px 0 24px;border-bottom:1px solid var(--line)}.site-nav a{text-decoration:none;color:var(--ink)}.brand{font:800 20px Georgia,serif}.nav-links{display:flex;gap:18px;font-size:12px;font-weight:800}.nav-cta{background:var(--accent);color:#fff!important;padding:9px 13px;border-radius:10px;font-size:12px;font-weight:800}.hero{padding:58px 0 30px;max-width:800px}.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:900}.hero h1{font:500 clamp(42px,7vw,68px) Georgia,serif;line-height:1;letter-spacing:-.05em;margin:12px 0 18px}.hero p{font-size:17px;line-height:1.65;color:var(--muted)}.tabs{display:flex;gap:8px;margin:25px 0 14px;flex-wrap:wrap}.tab{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:11px;padding:10px 13px;font-weight:800;font-size:12px;cursor:pointer}.tab.active{background:var(--accent);border-color:var(--accent);color:#fff}.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px;box-shadow:var(--shadow)}.searchrow{display:grid;grid-template-columns:1fr auto;gap:10px}.input{width:100%;border:1px solid var(--line);background:#fffefa;color:var(--ink);border-radius:11px;padding:14px;font:inherit;outline:none}.input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(138,106,69,.10)}button.primary,.primary{border:0;background:var(--accent);color:#fff;border-radius:11px;padding:13px 18px;font-weight:850;cursor:pointer;text-decoration:none;display:inline-block}.secondary{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:11px;padding:11px 14px;font-weight:800;cursor:pointer}.hint,.status{font-size:11px;color:var(--muted);line-height:1.5;margin-top:9px}.results{display:grid;gap:12px;margin-top:18px}.result{border:1px solid var(--line);border-radius:16px;padding:18px;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center}.result h3{margin:0 0 5px;font-size:17px}.result p{margin:4px 0;color:var(--muted);font-size:12px}.pill{display:inline-block;padding:5px 8px;border-radius:999px;background:var(--accent2);color:var(--accent);font-size:10px;font-weight:850;margin-top:8px}.empty{padding:25px;border:1px dashed var(--line);border-radius:15px;color:var(--muted);font-size:13px;text-align:center}.hidden{display:none}.paste{min-height:190px;resize:vertical}.extract{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}.metric{border:1px solid var(--line);border-radius:13px;padding:13px}.metric span{display:block;color:var(--muted);font-size:10px}.metric strong{display:block;margin-top:4px;font-size:16px}.source{font-size:10px;color:var(--muted);margin-top:14px;padding-top:13px;border-top:1px solid var(--line)}.notice{margin-top:16px;padding:13px 15px;border-radius:12px;background:var(--accent2);font-size:12px;line-height:1.5}.footer{margin-top:35px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:10px}@media(max-width:700px){.nav-links{display:none}.searchrow{grid-template-columns:1fr}.result{grid-template-columns:1fr}.extract{grid-template-columns:1fr}.hero{padding-top:38px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav class="site-nav"><a class="brand" href="/">PropertyLens</a><div class="nav-links"><a href="/property-search.html">Property Search</a><a href="/analyze.html">Analyze</a><a href="/brokers.html">For Brokers</a><a href="/pricing.html">Pricing</a><a href="/about.html">Trust & Method</a></div><a class="nav-cta" href="/analyze.html">Analyze →</a></nav>
+
+<section class="hero">
+<div class="eyebrow">Property intelligence</div>
+<h1>Know the property. Know the numbers.</h1>
+<p>Find a project or property by name, or paste a listing you already have. PropertyLens separates verified location data from user-provided and estimated figures before sending anything to the financial analyzer.</p>
+</section>
+
+<div class="tabs">
+<button class="tab active" id="searchTab" onclick="showTab('search')">Search by name</button>
+<button class="tab" id="pasteTab" onclick="showTab('paste')">Paste a listing</button>
+<button class="tab" id="manualTab" onclick="showTab('manual')">Enter manually</button>
+</div>
+
+<section id="searchPanel" class="card">
+<h2 style="margin:0 0 13px">Search a property or project</h2>
+<div class="searchrow"><input id="query" class="input" placeholder="e.g. Godrej Garden City Ahmedabad" autocomplete="off"><button class="primary" onclick="searchProperty()">Search</button></div>
+<div class="hint">Search uses an authorized property/location source when configured. Property portals are not scraped.</div>
+<div id="searchStatus" class="status"></div>
+<div id="results" class="results"></div>
+</section>
+
+<section id="pastePanel" class="card hidden">
+<h2 style="margin:0 0 13px">Paste listing details</h2>
+<textarea id="listing" class="input paste" placeholder="Paste the listing text you received. Example: 3 BHK, 1650 sq ft, ₹1.25 Cr, Godrej Garden City, Ahmedabad, rent ₹35,000/month..."></textarea>
+<button class="primary" style="margin-top:12px" onclick="extractListing()">Extract details</button>
+<div id="extractResult"></div>
+</section>
+
+<section id="manualPanel" class="card hidden">
+<h2 style="margin:0 0 13px">Already know the property?</h2>
+<p class="hint" style="margin-bottom:16px">Skip property discovery and go straight to the transparent calculator.</p>
+<a class="primary" href="/analyze.html">Open Property Analyzer →</a>
+</section>
+
+<div class="notice"><strong>Source discipline:</strong> PropertyLens will label whether a figure came from a user listing, an authorized data source, or a derived estimate. Missing data stays missing until you provide it.</div>
+
+<footer class="footer">Scenario-based decision support. Property identification does not constitute title, valuation, legal, tax or investment verification.</footer>
+</div>
+
+<script>
+function showTab(tab){
+  for(const [id,panel] of Object.entries({search:'searchPanel',paste:'pastePanel',manual:'manualPanel'}))document.getElementById(panel).classList.toggle('hidden',id!==tab);
+  for(const [id,btn] of Object.entries({search:'searchTab',paste:'pasteTab',manual:'manualTab'}))document.getElementById(btn).classList.toggle('active',id===tab);
+}
+function moneyToNumber(v){
+  if(!v)return null;
+  let s=String(v).toLowerCase().replace(/,/g,'').replace(/₹|rs\.?|inr/g,'').trim();
+  const m=s.match(/([\d.]+)\s*(crore|cr|lakh|lac|l)?/);
+  if(!m)return null;
+  let n=Number(m[1]); if(!Number.isFinite(n))return null;
+  if(['crore','cr'].includes(m[2]))n*=10000000;
+  else if(['lakh','lac'].includes(m[2]))n*=100000;
+  return Math.round(n);
+}
+function extractFromText(text){
+  const t=text.replace(/\u00a0/g,' ');
+  const priceMatch=t.match(/(?:₹|rs\.?|inr)\s*([\d.,]+)\s*(crore|cr|lakh|lac)?/i)||t.match(/([\d.,]+)\s*(crore|cr|lakh|lac)\b/i);
+  const rentMatch=t.match(/(?:rent|rental)[^₹\d]{0,25}(?:₹|rs\.?|inr)?\s*([\d,]+)\s*(?:\/\s*month|per\s*month|pm)?/i);
+  const areaMatch=t.match(/([\d,]+)\s*(?:sq\.?\s*ft|sqft|square\s*feet)/i);
+  const bhkMatch=t.match(/(?:\b([1-5])\s*BHK\b|\b([1-5])\s*bedroom)/i);
+  const locationMatch=t.match(/(?:at|in|located\s+in)\s+([^,\n]+(?:,[^,\n]+)?)/i);
+  return {price:priceMatch?moneyToNumber(priceMatch[0]):null,rent:rentMatch?Number(rentMatch[1].replace(/,/g,'')):null,area:areaMatch?Number(areaMatch[1].replace(/,/g,'')):null,bhk:bhkMatch?Number(bhkMatch[1]||bhkMatch[2]):null,location:locationMatch?locationMatch[1].trim():null};
+}
+async function extractListing(){
+  const out=document.getElementById('extractResult'), raw=document.getElementById('listing').value.trim();
+  if(!raw){out.innerHTML='<div class="empty">Paste a listing first.</div>';return}
+  const data=extractFromText(raw);
+  const found=Object.entries(data).filter(([,v])=>v!==null);
+  const labels={price:'Price',rent:'Monthly rent',area:'Area',bhk:'Configuration',location:'Location'};
+  out.innerHTML='<div class="extract">'+found.map(([k,v])=>'<div class="metric"><span>'+labels[k]+'</span><strong>'+ (k==='price'||k==='rent'?'₹'+Number(v).toLocaleString('en-IN'):(k==='area'?Number(v).toLocaleString('en-IN')+' sq ft':k==='bhk'?v+' BHK':v))+'</strong></div>').join('')+'</div>'+
+    (found.length?'<a class="primary" style="margin-top:15px" href="'+buildAnalyzeUrl(data)+'">Review in analyzer →</a>':'<div class="empty" style="margin-top:15px">No usable financial fields were detected. You can enter them manually.</div>')+
+    '<div class="source">Source: user-provided listing text. Review every extracted value before analysis.</div>';
+}
+function buildAnalyzeUrl(d){
+  const p=new URLSearchParams();
+  if(d.price)p.set('price',d.price);
+  if(d.rent)p.set('rent',d.rent);
+  return '/analyze.html?'+p.toString();
+}
+async function searchProperty(){
+  const q=document.getElementById('query').value.trim(), status=document.getElementById('searchStatus'), out=document.getElementById('results');
+  if(!q){status.textContent='Enter a project, building or property name.';return}
+  status.textContent='Searching…';out.innerHTML='';
+  try{
+    const r=await fetch('/api/property-search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:q})});
+    const data=await r.json();
+    if(!r.ok)throw new Error(data.error||'Search unavailable.');
+    status.textContent=data.source==='google-places'?'Source: Google Places · Review the match before using it.':'Search ready.';
+    out.innerHTML=(data.results||[]).map(x=>'<article class="result"><div><h3>'+esc(x.name)+'</h3><p>'+esc(x.address||'Location not returned')+'</p><span class="pill">'+esc(x.matchLabel||'Possible match')+'</span><p style="margin-top:9px">Source: '+esc(x.source)+'</p></div><div><a class="primary" href="'+buildPlaceUrl(x)+'">Use this property →</a></div></article>').join('')||'<div class="empty">No confident matches found. Try the project name + city.</div>';
+  }catch(e){status.textContent='';out.innerHTML='<div class="empty">'+esc(e.message)+'</div>'}
+}
+function buildPlaceUrl(x){
+  const p=new URLSearchParams();
+  p.set('propertyName',x.name||'');p.set('propertyAddress',x.address||'');if(x.mapsUrl)p.set('mapsUrl',x.mapsUrl);return '/analyze.html?'+p.toString();
+}
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+document.getElementById('query').addEventListener('keydown',e=>{if(e.key==='Enter')searchProperty()});
+</script>
+</body></html>
