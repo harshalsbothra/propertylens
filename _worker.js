@@ -1,3 +1,4 @@
+import { INDIA_PROPERTY_INDEX } from './india-property-index.js';
 const CORS={"Content-Type":"application/json","Cache-Control":"no-store","Access-Control-Allow-Origin":"*"};
 
 function json(data,status=200,extra={}){return new Response(JSON.stringify(data),{status,headers:{...CORS,...extra}})}
@@ -19,22 +20,24 @@ async function propertySearch(request,env){
     const query=String(body?.query||'').trim();
     if(!query||query.length>240)return json({error:'Enter a property or project name up to 240 characters.'},400);
 
-    // Use one Nominatim request (per its public usage policy) plus Photon as a
-    // second OSM-derived search index. Neither service supplies property prices.
-    const nominatimUrl='https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&namedetails=1&limit=10&countrycodes=in&q='+encodeURIComponent(query);
-    const photonUrl='https://photon.komoot.io/api/?q='+encodeURIComponent(query)+'&limit=10&lang=en';
+    const normalized=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+    const tokens=normalized(query).split(/\s+/).filter(x=>x.length>1);
+    const localResults=INDIA_PROPERTY_INDEX.map(x=>{
+      const hay=normalized(x.name+' '+x.address);
+      const name=normalized(x.name);
+      const hits=tokens.filter(t=>hay.includes(t)).length;
+      const nameHits=tokens.filter(t=>name.includes(t)).length;
+      const exact=name===normalized(query);
+      const score=Math.min(100,Math.round((hits/Math.max(tokens.length,1))*65+(nameHits/Math.max(tokens.length,1))*25+(exact?10:0)));
+      return {...x,matchScore:score,matchLabel:score>=80?'Strong match':score>=45?'Possible match':'Related Indian project'};
+    }).filter(x=>x.matchScore>=35);
+
+    const nominatimUrl='https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&namedetails=1&limit=15&countrycodes=in&q='+encodeURIComponent(query);
+    const photonUrl='https://photon.komoot.io/api/?q='+encodeURIComponent(query)+'&limit=20&lang=en';
 
     const [nominatimResponse,photonResponse]=await Promise.allSettled([
-      fetch(nominatimUrl,{headers:{
-        'Accept':'application/json',
-        'Accept-Language':'en-IN,en;q=0.8',
-        'User-Agent':'PropertyLens/1.0 (+https://propertylens.visionpl.workers.dev; property discovery)'
-      }}),
-      fetch(photonUrl,{headers:{
-        'Accept':'application/json',
-        'Accept-Language':'en-IN,en;q=0.8',
-        'User-Agent':'PropertyLens/1.0 (+https://propertylens.visionpl.workers.dev; property discovery)'
-      }})
+      fetch(nominatimUrl,{headers:{'Accept':'application/json','Accept-Language':'en-IN,en;q=0.8','User-Agent':'PropertyLens/1.0 (+https://propertylens.visionpl.workers.dev; India property discovery)'}}),
+      fetch(photonUrl,{headers:{'Accept':'application/json','Accept-Language':'en-IN,en;q=0.8','User-Agent':'PropertyLens/1.0 (+https://propertylens.visionpl.workers.dev; India property discovery)'}})
     ]);
 
     const raw=[];
@@ -43,59 +46,49 @@ async function propertySearch(request,env){
       for(const p of (Array.isArray(places)?places:[])){
         const address=p.display_name||'';
         const name=p.name||p.namedetails?.name||address.split(',')[0]||'Unnamed place';
-        raw.push({
-          name,address,lat:p.lat?Number(p.lat):null,lng:p.lon?Number(p.lon):null,
-          type:p.type||p.class||'place',source:'OpenStreetMap / Nominatim',
-          importance:Number(p.importance||0)
-        });
+        raw.push({name,address,lat:p.lat?Number(p.lat):null,lng:p.lon?Number(p.lon):null,type:p.type||p.class||'place',source:'OpenStreetMap / Nominatim',importance:Number(p.importance||0),country:'India'});
       }
     }
     if(photonResponse.status==='fulfilled'&&photonResponse.value.ok){
       const data=await photonResponse.value.json();
       for(const f of (Array.isArray(data?.features)?data.features:[])){
         const p=f.properties||{}, c=f.geometry?.coordinates||[];
+        const country=String(p.countrycode||'').toLowerCase();
+        if(country&&country!=='in')continue;
+        if(p.country&&normalized(p.country)!=='india'&&!normalized(p.country).includes('india'))continue;
         const parts=[p.name,p.housenumber,p.street,p.district,p.city,p.state,p.postcode,p.country].filter(Boolean);
-        raw.push({
-          name:p.name||parts[0]||'Unnamed place',
-          address:parts.join(', ')||'Location returned by Photon',
-          lat:Number(c[1])||null,lng:Number(c[0])||null,
-          type:p.osm_value||p.osm_key||'place',source:'OpenStreetMap / Photon',
-          importance:Number(p.rank?.importance||p.extent?0.2:0)
-        });
+        raw.push({name:p.name||parts[0]||'Unnamed place',address:parts.join(', ')||'Location returned by Photon',lat:Number(c[1])||null,lng:Number(c[0])||null,type:p.osm_value||p.osm_key||'place',source:'OpenStreetMap / Photon',importance:Number(p.rank?.importance||0),country:'India'});
       }
     }
 
-    const tokens=query.toLowerCase().split(/[^a-z0-9]+/).filter(x=>x.length>2);
-    const normalized=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
-    const scored=raw.map(x=>{
+    const osm=raw.map(x=>{
       const hay=normalized(x.name+' '+x.address);
       const hits=tokens.filter(t=>hay.includes(t)).length;
       const ratio=tokens.length?hits/tokens.length:0;
       const exact=normalized(x.name)===normalized(query);
       const nameHits=tokens.filter(t=>normalized(x.name).includes(t)).length;
-      const score=Math.min(100,Math.round((ratio*70)+(Math.min(1,nameHits/Math.max(tokens.length,1))*20)+(exact?10:0)));
-      return {...x,matchScore:score,matchLabel:score>=75?'Strong match':score>=45?'Possible match':'Low-confidence match'};
+      const score=Math.min(100,Math.round(ratio*70+Math.min(1,nameHits/Math.max(tokens.length,1))*20+(exact?10:0)));
+      return {...x,matchScore:score,matchLabel:score>=75?'Strong match':score>=45?'Possible match':'Location match'};
     });
 
-    const deduped=[];
-    const seen=new Set();
-    for(const x of scored.sort((a,b)=>b.matchScore-a.matchScore)){
-      const key=(normalized(x.name)+'|'+(x.lat?x.lat.toFixed(4):'')+'|'+(x.lng?x.lng.toFixed(4):''));
+    const merged=[...localResults.map(x=>({...x,lat:null,lng:null})),...osm].sort((a,b)=>b.matchScore-a.matchScore);
+    const deduped=[],seen=new Set();
+    for(const x of merged){
+      const key=normalized(x.name)+'|'+normalized(x.address||'');
       if(seen.has(key))continue;
       seen.add(key);deduped.push(x);
     }
 
     return json({
-      source:'openstreetmap',
-      providers:['Nominatim','Photon'],
+      source:'india-project-index + OpenStreetMap',
+      providers:['PropertyLens India project index','Nominatim','Photon'],
       query,
-      results:deduped.slice(0,12),
-      note:'Location discovery only. Property price, rent, area and investment figures are not supplied by OpenStreetMap and must come from a listing, broker/developer feed, or another permitted source.',
+      results:deduped.slice(0,24),
+      indexSize:INDIA_PROPERTY_INDEX.length,
+      note:'India-only discovery. Project names come from the PropertyLens curated index or OpenStreetMap; price, rent, area and investment figures still require a listing, broker/developer feed, or another permitted source.',
       fallbackAvailable:deduped.length===0
     });
-  }catch(e){
-    return json({error:'Unable to search for this property right now.'},500)
-  }
+  }catch(e){return json({error:'Unable to search for this property right now.'},500)}
 }
 async function aiReport(request,env){
   if(request.method!=='POST')return json({error:'Method not allowed.'},405,{Allow:'POST'});
