@@ -111,6 +111,32 @@ ${JSON.stringify(body)}`;
   }catch(e){return json({error:'Unable to generate the AI report.'},500)}
 }
 
+async function whatsappWebhook(request,env){
+  const url=new URL(request.url);
+  if(request.method==='GET'){
+    const mode=url.searchParams.get('hub.mode');
+    const token=url.searchParams.get('hub.verify_token');
+    const challenge=url.searchParams.get('hub.challenge');
+    if(mode==='subscribe'&&token&&env.WHATSAPP_VERIFY_TOKEN&&token===env.WHATSAPP_VERIFY_TOKEN)return new Response(challenge,{status:200,headers:{'Content-Type':'text/plain'}});
+    return new Response('Forbidden',{status:403});
+  }
+  if(request.method!=='POST')return json({error:'Method not allowed.'},405,{Allow:'GET, POST'});
+  try{
+    const body=await request.json();
+    const messages=[];
+    for(const entry of (Array.isArray(body?.entry)?body.entry:[])){
+      for(const change of (entry.changes||[])){
+        const value=change.value||{};
+        for(const m of (value.messages||[])){
+          const textBody=m?.text?.body||m?.button?.text||m?.interactive?.button_reply?.title||'';
+          if(textBody)messages.push({from:m.from||null,messageId:m.id||null,timestamp:m.timestamp||null,type:m.type||'text',text:textBody});
+        }
+      }
+    }
+    return json({ok:true,received:messages.length,messages,automation:{status:'queued',next:'process conversation → update customer profile → rematch inventory → create follow-up'}});
+  }catch(e){return json({error:'Invalid WhatsApp webhook payload.'},400)}
+}
+
 export default {async fetch(request,env){
   const url=new URL(request.url);
   if(url.pathname==='/api/ai-report')return aiReport(request,env);
