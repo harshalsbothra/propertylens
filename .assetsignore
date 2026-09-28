@@ -1,0 +1,6 @@
+_worker.js
+wrangler.jsonc
+_headers
+functions/
+.git/
+.gitignore
