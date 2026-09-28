@@ -16,6 +16,22 @@ background-attachment:fixed}
 .hero h1,.section h2{ text-shadow:0 1px 0 rgba(255,255,255,.45)}
 @media(max-width:700px){.wrap{padding-left:15px;padding-right:15px}.site-nav{position:sticky;top:8px;z-index:20;padding:10px 12px;border:1px solid var(--glass-border);border-radius:20px;background:rgba(255,255,255,.46);backdrop-filter:blur(22px) saturate(150%);-webkit-backdrop-filter:blur(22px) saturate(150%);box-shadow:0 12px 35px rgba(61,49,35,.10)}}
 [data-theme="dark"]{--glass-bg:rgba(38,36,32,.62);--glass-border:rgba(255,255,255,.12);--glass-shadow:0 18px 55px rgba(0,0,0,.28)}
+</style><style id="propertylens-motion-v2">
+:root{--motion-fast:180ms;--motion-med:320ms;--motion-spring:cubic-bezier(.22,1,.36,1)}
+html{scroll-behavior:smooth}
+body{animation:plPageIn .45s var(--motion-spring) both}
+@keyframes plPageIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.card,.mock,.quote,.step,.metric,.result,.site-nav,.theme-toggle,.secondary,.tab,.btn,.nav-cta{transition:transform var(--motion-med) var(--motion-spring),box-shadow var(--motion-med) ease,border-color var(--motion-fast) ease,background-color var(--motion-med) ease,color var(--motion-fast) ease}
+.card:hover,.mock:hover,.quote:hover{transform:translateY(-3px)}
+.btn,.nav-cta,.theme-toggle,.secondary,.tab{transition:transform var(--motion-fast) var(--motion-spring),box-shadow var(--motion-med) ease,filter var(--motion-fast) ease}
+.btn:hover,.nav-cta:hover{transform:translateY(-2px);filter:brightness(1.035)}
+.btn:active,.nav-cta:active,.theme-toggle:active,.secondary:active,.tab:active{transform:scale(.97)}
+input,textarea,select{transition:border-color var(--motion-fast) ease,box-shadow var(--motion-med) ease,background-color var(--motion-med) ease}
+input:focus,textarea:focus,select:focus{transform:translateY(-1px)}
+[data-theme="dark"] .hero h1,[data-theme="dark"] .section h2,[data-theme="dark"] h1,[data-theme="dark"] h2,[data-theme="dark"] h3{ text-shadow:none}
+[data-theme="dark"] .hero p,[data-theme="dark"] .card p,[data-theme="dark"] .step small,[data-theme="dark"] .metric span{color:var(--muted)}
+[data-theme="dark"] .glass-label{color:var(--ink)}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style></head><body><div class="wrap"><nav class="nav"><a class="brand" href="/index.html">PropertyLens</a><div class="links"><a href="/brokers.html">Broker OS</a><a href="/analyze.html">Analyze</a><a href="/pricing.html">Pricing</a></div><div style="display:flex;gap:7px;align-items:center"><button class="theme-toggle" onclick="togglePropertyLensTheme()">☾ Dark</button><a class="btn primary" href="/brokers.html">Broker dashboard →</a></div></nav>
 <section class="hero"><div><div class="eyebrow">WhatsApp Broker Inbox</div><h1>Let conversations become CRM data.</h1><p>PropertyLens is designed to extract buyer requirements from WhatsApp, update the client profile, find matching inventory and create the next follow-up automatically.</p></div><button class="btn primary" onclick="demo()">Load WhatsApp trial</button></section>
 <div class="layout"><aside class="card inbox"><strong>Conversations</strong><div id="convs" style="margin-top:10px"></div></aside><main class="card"><strong id="chatTitle">Select a conversation</strong><div class="chat" id="chat"></div><div class="grid"><textarea class="full" id="message" rows="2" placeholder="Type a trial message exactly as a buyer would..."></textarea><button class="btn primary full" onclick="receive()">Process WhatsApp message</button></div></main><aside class="right"><div class="card"><strong>Customer memory</strong><div id="profile" class="section"></div></div><div class="card section"><strong>Automation</strong><div id="automation" class="section"></div></div><div class="card section"><strong>Best matches</strong><div id="matches" class="section"></div></div></aside></div>
