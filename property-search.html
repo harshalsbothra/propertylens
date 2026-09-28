@@ -30,7 +30,7 @@
 <section id="searchPanel" class="card">
 <h2 style="margin:0 0 13px">Search a property or project</h2>
 <div class="searchrow"><input id="query" class="input" placeholder="e.g. Godrej Garden City Ahmedabad" autocomplete="off"><button class="primary" onclick="searchProperty()">Search</button></div>
-<div class="hint">Search uses an authorized property/location source when configured. Property portals are not scraped.</div>
+<div class="hint">Search uses a no-key public map/geocoding source. Property portals are not scraped.</div>
 <div id="searchStatus" class="status"></div>
 <div id="results" class="results"></div>
 </section>
@@ -101,7 +101,7 @@ async function searchProperty(){
     const r=await fetch('/api/property-search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:q})});
     const data=await r.json();
     if(!r.ok)throw new Error(data.error||'Search unavailable.');
-    status.textContent=data.source==='google-places'?'Source: Google Places · Review the match before using it.':'Search ready.';
+    status.textContent='Source: OpenStreetMap / Nominatim · Review the match before using it.';
     out.innerHTML=(data.results||[]).map(x=>'<article class="result"><div><h3>'+esc(x.name)+'</h3><p>'+esc(x.address||'Location not returned')+'</p><span class="pill">'+esc(x.matchLabel||'Possible match')+'</span><p style="margin-top:9px">Source: '+esc(x.source)+'</p></div><div><a class="primary" href="'+buildPlaceUrl(x)+'">Use this property →</a></div></article>').join('')||'<div class="empty">No confident matches found. Try the project name + city.</div>';
   }catch(e){status.textContent='';out.innerHTML='<div class="empty">'+esc(e.message)+'</div>'}
 }
