@@ -142,5 +142,31 @@ export default {async fetch(request,env){
   if(url.pathname==='/api/ai-report')return aiReport(request,env);
   if(url.pathname==='/api/property-search')return propertySearch(request,env);
   if(url.pathname==='/api/whatsapp/webhook')return whatsappWebhook(request,env);
+
+  // Resolve legacy/clean URLs directly instead of returning an HTTP redirect.
+  // This also prevents Safari + service-worker redirect errors.
+  const aliases={
+    '/':'/index.html',
+    '/home':'/index.html',
+    '/home/':'/index.html',
+    '/analyze':'/analyze.html',
+    '/analyze/':'/analyze.html',
+    '/property-search':'/property-search.html',
+    '/property-search/':'/property-search.html',
+    '/brokers':'/brokers.html',
+    '/brokers/':'/brokers.html',
+    '/broker-whatsapp':'/broker-whatsapp.html',
+    '/broker-whatsapp/':'/broker-whatsapp.html',
+    '/pricing':'/pricing.html',
+    '/pricing/':'/pricing.html',
+    '/about':'/about.html',
+    '/about/':'/about.html'
+  };
+  if(aliases[url.pathname]){
+    const target=new URL(aliases[url.pathname],url.origin);
+    const request2=new Request(target.toString(),request);
+    return env.ASSETS.fetch(request2);
+  }
+
   return env.ASSETS.fetch(request);
 }};
