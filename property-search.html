@@ -115,6 +115,11 @@ function buildPlaceUrl(x){
 }
 function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 document.getElementById('query').addEventListener('keydown',e=>{if(e.key==='Enter')searchProperty()});
+window.addEventListener('error',e=>{
+  const out=document.getElementById('results');
+  if(out)out.innerHTML='<div class="empty">Property Search hit a browser error. Please refresh once and try again.</div>';
+});
+
 </script>
 <script id="propertylens-theme-script">
 (function(){
