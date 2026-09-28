@@ -1,0 +1,15 @@
+name: Export PropertyLens ZIP
+on:
+  push:
+    branches: [main]
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create ZIP
+        run: zip -r PropertyLens-current.zip . -x ".git/*" ".github/*" "*.DS_Store"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: propertylens-current
+          path: PropertyLens-current.zip
