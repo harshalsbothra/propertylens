@@ -27,7 +27,9 @@ background-attachment:fixed}
 .hero h1,.section h2{ text-shadow:0 1px 0 rgba(255,255,255,.45)}
 @media(max-width:700px){.wrap{padding-left:15px;padding-right:15px}.card{border-radius:22px;padding:19px}.result{border-radius:18px}.site-nav{position:sticky;top:8px;z-index:20;padding:10px 12px;border:1px solid var(--glass-border);border-radius:20px;background:rgba(255,255,255,.46);backdrop-filter:blur(22px) saturate(150%);-webkit-backdrop-filter:blur(22px) saturate(150%);box-shadow:0 12px 35px rgba(61,49,35,.10)}}
 [data-theme="dark"]{--glass-bg:rgba(38,36,32,.62);--glass-border:rgba(255,255,255,.12);--glass-shadow:0 18px 55px rgba(0,0,0,.28)}
-</style></head>
+<style id="propertylens-search-upgrade">
+.search-card{overflow:hidden}.search-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-start}.india-badge{padding:9px 12px;border-radius:999px;background:var(--accent2);color:var(--accent);font-weight:850;font-size:11px;white-space:nowrap}.big-search{grid-template-columns:1fr auto;margin-top:22px}.big-search .input{min-height:62px;border-radius:18px;font-size:17px;padding:18px 20px;background:rgba(255,255,255,.72);box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 10px 28px rgba(74,58,39,.06)}.big-search .primary{min-height:62px;border-radius:18px;padding:0 24px;font-size:14px}.search-tools{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-top:12px}.search-tools .secondary{padding:8px 11px;font-size:11px}.index-count{font-size:10px;color:var(--muted);margin-left:auto}.suggestions{display:none}.result{transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease}.result:hover{transform:translateY(-2px);box-shadow:0 18px 45px rgba(61,49,35,.12)}.result .primary{transition:transform .2s ease,filter .2s ease}.result .primary:hover{transform:translateY(-1px);filter:brightness(1.04)}@media(max-width:700px){.search-head{display:block}.india-badge{display:inline-block;margin-top:12px}.big-search{grid-template-columns:1fr}.big-search .input{min-height:58px;font-size:16px}.big-search .primary{min-height:56px}.index-count{width:100%;margin-left:0}.search-card{padding:20px 16px}}
+</style></style></head>
 <body>
 <div class="wrap">
 <nav class="site-nav"><a class="brand" href="/index.html">PropertyLens</a><div class="nav-links"><a href="/property-search.html">Property Search</a><a href="/analyze.html">Analyze</a><a href="/brokers.html">For Brokers</a><a href="/pricing.html">Pricing</a><a href="/about.html">Trust & Method</a></div><button class="theme-toggle" onclick="togglePropertyLensTheme()">☾ Dark</button><a class="nav-cta" href="/analyze.html">Analyze →</a></nav>
@@ -44,10 +46,12 @@ background-attachment:fixed}
 <button class="tab" id="manualTab" onclick="showTab('manual')">Enter manually</button>
 </div>
 
-<section id="searchPanel" class="card">
-<h2 style="margin:0 0 13px">Search a property or project</h2>
-<div class="searchrow"><input id="query" class="input" placeholder="e.g. Godrej Garden City Ahmedabad" autocomplete="off"><button class="primary" onclick="searchProperty()">Search</button></div>
-<div class="hint">Search uses a no-key public map/geocoding source. Property portals are not scraped.</div>
+<section id="searchPanel" class="card search-card">
+<div class="search-head"><div><div class="eyebrow">India property index</div><h2 style="margin:4px 0 7px;font-size:30px">Find a project, building or location</h2><p class="hint" style="margin:0;max-width:720px">Search by project name, builder, locality or city. PropertyLens searches its curated Indian project index first, then supplements it with India-only map results.</p></div><div class="india-badge">🇮🇳 India only</div></div>
+<div class="searchrow big-search"><input id="query" class="input" placeholder="Try “Godrej Garden City”, “Vesu Surat”, “Prestige Pune”…" autocomplete="off" aria-label="Search Indian properties"><button class="primary" onclick="searchProperty()">Search India</button></div>
+<div id="suggestions" class="suggestions"></div>
+<div class="search-tools"><button class="secondary" onclick="quickSearch('Mumbai')">Mumbai</button><button class="secondary" onclick="quickSearch('Pune')">Pune</button><button class="secondary" onclick="quickSearch('Bengaluru')">Bengaluru</button><button class="secondary" onclick="quickSearch('Hyderabad')">Hyderabad</button><button class="secondary" onclick="quickSearch('Ahmedabad')">Ahmedabad</button><button class="secondary" onclick="quickSearch('Surat')">Surat</button><span class="index-count">Curated Indian projects + live location discovery</span></div>
+<div class="hint">No foreign properties are shown. Prices, rent and area are never invented from the property index.</div>
 <div id="searchStatus" class="status"></div>
 <div id="results" class="results"></div>
 </section>
@@ -71,6 +75,7 @@ background-attachment:fixed}
 </div>
 
 <script>
+function quickSearch(q){document.getElementById('query').value=q;searchProperty()}
 function showTab(tab){
   for(const [id,panel] of Object.entries({search:'searchPanel',paste:'pastePanel',manual:'manualPanel'}))document.getElementById(panel).classList.toggle('hidden',id!==tab);
   for(const [id,btn] of Object.entries({search:'searchTab',paste:'pasteTab',manual:'manualTab'}))document.getElementById(btn).classList.toggle('active',id===tab);
@@ -118,8 +123,8 @@ async function searchProperty(){
     const r=await fetch('/api/property-search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:q})});
     const data=await r.json();
     if(!r.ok)throw new Error(data.error||'Search unavailable.');
-    status.textContent='Sources: OpenStreetMap / Nominatim + Photon · Review the match before using it.';
-    out.innerHTML=(data.results||[]).map(x=>'<article class="result"><div><h3>'+esc(x.name)+'</h3><p>'+esc(x.address||'Location not returned')+'</p><span class="pill">'+esc(x.matchLabel||'Possible match')+'</span><p style="margin-top:9px">Source: '+esc(x.source)+'</p></div><div><a class="primary" href="'+buildPlaceUrl(x)+'">Use this property →</a></div></article>').join('')||'<div class="empty">No confident matches found. Try the project name + city.</div>';
+    status.textContent='India-only results · Project index + OpenStreetMap · Review the match before using it.';
+    out.innerHTML=(data.results||[]).map(x=>'<article class="result"><div><h3>'+esc(x.name)+'</h3><p>'+esc(x.address||'Location not returned')+'</p><span class="pill">'+esc(x.matchLabel||'Possible match')+'</span><p style="margin-top:9px">Source: '+esc(x.source)+'</p></div><div><a class="primary" href="'+buildPlaceUrl(x)+'">Use this property →</a></div></article>').join('')||'<div class="empty">No Indian match found. Try a project + city, builder name, or locality.</div>';
   }catch(e){status.textContent='';out.innerHTML='<div class="empty">'+esc(e.message)+'</div>'}
 }
 function buildPlaceUrl(x){
