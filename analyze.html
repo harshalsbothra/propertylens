@@ -223,7 +223,7 @@ function writeScenarioUrl(){
 function saveScenario(){
   try{localStorage.setItem(PERSIST_KEY,JSON.stringify(captureState()));writeScenarioUrl();}catch(e){}
 }
-function restoreScenario(){
+function applyPropertyIdentity(){const q=new URLSearchParams(location.search);const name=q.get('propertyName');const address=q.get('propertyAddress');if(name){const h=document.querySelector('.hero h1');if(h)h.innerHTML='Analyze: '+name;const sub=document.querySelector('.hero .sub');if(sub&&address)sub.innerHTML='Matched property: '+address+'<br>'+sub.innerHTML;}if(name||address){localStorage.setItem('propertylens-selected-property',JSON.stringify({name:name||'',address:address||'',mapsUrl:q.get('mapsUrl')||''}));}}\nfunction restoreScenario(){
   try{
     const urlState=readUrlState();
     const saved=JSON.parse(localStorage.getItem(PERSIST_KEY)||'null');
@@ -260,7 +260,7 @@ function setMode(mode){const buy=mode==='buy';document.body.dataset.mode=buy?'bu
 function loadSellerExample(){$('salePrice').value='1,00,00,000';$('outstandingLoan').value='40,00,000';$('sellerCosts').value=2;$('sellerCgTax').value=10;$('originalPrice').value='75,00,000';$('sellerHolding').value=7;$('sellerIndexation').checked=false;analyzeSeller()}
 function toggleTheme(){const d=document.documentElement,now=d.getAttribute('data-theme')==='dark'?'light':'dark';d.setAttribute('data-theme',now);localStorage.setItem('propertylens-theme',now);$('themeBtn').textContent=now==='dark'?'☀ Light':'☾ Dark'}
 let resizeTimer;window.addEventListener("resize",()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{if(document.body.dataset.mode==="sell")analyzeSeller();else analyze();},250);});
-(function(){restoreScenario();prepareMobileTooltips();bindPersistence();updateMoneyHelpers();syncDownPctFromAmount();initCompareInputs();const saved=localStorage.getItem('propertylens-theme');if(saved){document.documentElement.setAttribute('data-theme',saved);$('themeBtn').textContent=saved==='dark'?'☀ Light':'☾ Dark'}analyze()})();
+(function(){applyPropertyIdentity();restoreScenario();prepareMobileTooltips();bindPersistence();updateMoneyHelpers();syncDownPctFromAmount();initCompareInputs();const saved=localStorage.getItem('propertylens-theme');if(saved){document.documentElement.setAttribute('data-theme',saved);$('themeBtn').textContent=saved==='dark'?'☀ Light':'☾ Dark'}analyze()})();
 </script>
 <script>
 if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));}
